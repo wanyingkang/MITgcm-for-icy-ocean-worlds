@@ -1,0 +1,30 @@
+#! /bin/bash
+archive=$1
+if [ ! -z "$archive" ]; then
+    mkdir $archive
+    mv *.meta *.data STD*.0000 run[0-9]* $archive
+    mv grid* $archiv
+    mv *.nc $archiv
+    cp data* gendata.m run.sub $archive
+    mkdir $archive/code
+    cp *.F $archive/code
+    chmod -w $archive
+    here=`pwd`
+    caseroot=${here%/*}
+    casename=${caseroot##*/}
+    exptdir=${here##*/}
+    exptdirhead=data_${casename}_
+    exptname=${exptdir/${exptdirhead}/}
+    cp $caseroot/${exptname}.ipynb $caseroot/${exptname}_${archive}.ipynb
+    sed -i "s/$exptname/${exptname}\/${archive}/g" $caseroot/${exptname}_${archive}.ipynb
+fi
+rm -rf run[0-9]* pickup* error.* stdout.* STD* *.txt
+rm -rf *.meta *.data run[0-9]* grid* *.nc
+if [ -z "$archive" ]; then
+    find . -maxdepth 1 -type f -name '*.meta' -exec rm {} \;
+    find . -maxdepth 2 -type f -name '*.data' -exec rm {} \;
+fi
+linnum_currentiter=`grep -n -m1 'export currentiter=' run.sub | awk -F: '{print $1}'`
+sed -i "${linnum_currentiter}c export currentiter=0" run.sub
+linnum_matlab=`grep -n -m1 'currentiter=' climatology.m | awk -F: '{print $1}'`
+sed -i "${linnum_matlab}c \\currentiter=-1;" climatology.m

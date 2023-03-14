@@ -1,0 +1,70 @@
+#! /bin/bash
+export RUNNAME=$1   
+export TODO=$2
+export BASERUN=$3
+export CASEROOT=`pwd`
+export ORIGRUN=`echo $CASEROOT |rev| cut -d'/' -f1|rev`
+[ -z "$BASERUN" ] || export BASERUN=_${BASERUN}
+export OUTPUT=DISKXXDISK/data_${ORIGRUN}_${RUNNAME}/
+export MyExp=MITROOTXXMITROOT/MITgcm/my_exp/
+
+if [[ $TODO == *"clean"* || $TODO == *"recreate"* ]]; then
+    echo cleaning ${ORIGRUN}_${RUNNAME}
+    rm -rf $OUTPUT
+    rm -rf input_${RUNNAME}
+    rm data_${ORIGRUN}_${RUNNAME}
+    rm ${RUNNAME}.ipynb
+fi
+
+if [[ -z "$TODO" || $TODO == *"create"*  ]]; then
+    echo ${ORIGRUN}${BASERUN} =\> ${ORIGRUN}_${RUNNAME}
+    mkdir $CASEROOT/input_${RUNNAME}
+    cp -r $CASEROOT/input${BASERUN}/* $CASEROOT/input_${RUNNAME}/
+    mkdir $OUTPUT
+    ln -s $OUTPUT .
+    cd $OUTPUT
+    ln -s $CASEROOT/input_${RUNNAME}/* . 
+    ln -s $CASEROOT/code/* . 
+    ln -s $CASEROOT/build/mitgcmuv . 
+    #ln -s ${MyExp}/grids/grid${RESOLUTION}/* .
+    cp $CASEROOT/data_${ORIGRUN}${BASERUN}/cleandata .
+    cp $CASEROOT/data_${ORIGRUN}${BASERUN}/run.sub .
+    cp $CASEROOT/data_${ORIGRUN}${BASERUN}/deleterun .
+    sed -i "s/${ORIGRUN}${BASERUN}/${ORIGRUN}_${RUNNAME}/g" run.sub
+    ORIGBRIEF=`echo ${ORIGRUN}${BASERUN}|rev|cut -d '_' -f 1|rev`
+    NEWBRIEF=`echo ${ORIGRUN}_${RUNNAME}|rev|cut -d '_' -f 1|rev`
+    sed -i "s/-J ${ORIGBRIEF}/-J ${NEWBRIEF}/g" run.sub
+    linnum_currentiter=`grep -n -m1 'export currentiter=' run.sub | awk -F: '{print $1}'`
+    sed -i "${linnum_currentiter}c export currentiter=0" run.sub
+
+    cp $CASEROOT/data_${ORIGRUN}${BASERUN}/climatology.m .
+    sed -i "s/${ORIGRUN}${BASERUN}/${ORIGRUN}_${RUNNAME}/g" climatology.m
+    linnum_currentiter=`grep -n -m1 'currentiter=' climatology.m | awk -F: '{print $1}'`
+    sed -i "${linnum_currentiter}c currentiter=-1;" climatology.m
+
+    \cp -f $CASEROOT/jupyter_template.ipynb $CASEROOT/${RUNNAME}.ipynb
+    sed -i "s/_CASENAME_/${ORIGRUN}_${RUNNAME}/g" $CASEROOT/${RUNNAME}.ipynb
+fi
+
+if [[ $TODO == *"borrow"* ]]; then
+    niter=`grep 'nIter0=' $CASEROOT/data_${ORIGRUN}${BASERUN}/data |cut -d= -f2|cut -d, -f1`
+    niterfill0=$(printf "%010d" $niter)
+    cp $CASEROOT/data_${ORIGRUN}${BASERUN}/pickup.${niterfill0}.* .
+    dataline="pickupSuff=\'${niterfill0}\',"
+    datalink=`readlink data`
+    linnum_currentiter=`grep -n -m1 'pickupSuff' $datalink | awk -F: '{print $1}'`
+    sed -i "${linnum_currentiter}c ${dataline}" $datalink
+    rsync $CASEROOT/data_${ORIGRUN}${BASERUN}/*.bin .
+fi
+
+if [[ $TODO == *"ic"* ]]; then
+    niter=`grep 'nIter0=' $CASEROOT/data_${ORIGRUN}${BASERUN}/data |cut -d= -f2|cut -d, -f1`
+    niterfill0=$(printf "%010d" $niter)
+    cp $CASEROOT/data_${ORIGRUN}${BASERUN}/pickup.${niterfill0}.* .
+    rename ${niterfill0} $(printf "%010d" 1) pickup.*
+    dataline="pickupSuff=\'$(printf "%010d" 1)\',"
+    datalink=`readlink data`
+    linnum_currentiter=`grep -n -m1 'pickupSuff' $datalink | awk -F: '{print $1}'`
+    sed -i "${linnum_currentiter}c ${dataline}" $datalink
+    rsync $CASEROOT/data_${ORIGRUN}${BASERUN}/*.bin .
+fi

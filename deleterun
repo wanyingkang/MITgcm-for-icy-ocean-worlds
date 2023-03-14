@@ -1,0 +1,20 @@
+#! /bin/bash
+ndel=$1
+if [[ $ndel != 0 ]]; then
+echo ndel=$ndel
+
+  for ii in `seq 1 $ndel`
+  do
+    echo $ii...
+    runlast=`find . -name "run*" -type d|cut -c 6-|sort -n|tail -n 1`
+    echo rm run${runlast}
+    rm -rf run${runlast}
+  done
+
+  linnum_currentiter=`grep -n -m1 'export currentiter=' run.sub | awk -F: '{print $1}'`
+  sed -i "${linnum_currentiter}c \\ export currentiter=${runlast}" run.sub
+
+fi
+rm -f *.data *.meta
+runlast=`find . -name "run*" -type d|cut -c 6-|sort -n|tail -n 1`
+cp run$runlast/pickup* .

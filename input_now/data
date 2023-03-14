@@ -1,0 +1,142 @@
+# ====================
+# | Model parameters |
+# ====================
+#
+# Continuous equation parameters
+&PARM01
+saltStepping=.TRUE.,
+viscAh=0.001,
+viscAhW=0.001,
+#viscA4=0.05e3,
+#viscAr=1,
+#viscArNr=50*0.05,0.06,0.07,0.08,0.1,16*0.15,
+#viscArNr=50*0.02,0.025,0.03,0.035,0.04,16*0.05,
+viscAr=0.01,
+#viscArNr=50*0.05,0.08,0.1,0.15,0.2,0.25,15*0.3,
+#viscArNr=50*0.05,0.06,0.1,0.15,0.25,0.35,15*0.5,
+#viscArNr=50*0.1,0.12,0.2,0.3,0.5,0.7,15*1,
+# 1. viscAh=0.03, viscAhW=0.03, viscAr=0.01, Smag=2, rolls are totally a mess 
+# 2. viscAh=0.08, viscAr=0.01, Smag=3, remove boundary diff,
+useSmag3D=.FALSE.,
+viscC2Smag=3.,
+cosPower=1.,
+select_rstar=0,
+nonlinFreeSurf=0,
+nonHydrostatic=.TRUE.,
+quasiHydrostatic=.FALSE.,
+hFacInf=0.1,
+hFacSup=2.0,
+tRef=70*-3.536,
+sRef=70*60.000,
+no_slip_sides=.FALSE.,
+no_slip_bottom=.FALSE.,
+bottomDragLinear=0.0001,
+#ivdc_kappa=30.0,
+diffKhT=0.001,
+diffKrT=0.001,
+#diffK4T=1.E4,
+diffKhS=0.001,
+diffKrS=0.001,
+#diffK4S=1.E4,
+eosType=LINEAR,
+tAlpha=8.45e-05,
+sBeta=0.000767,
+rotationPeriod=302400,
+gravity=0.105172,
+gravityFile='gravity_r_enceladus.bin',
+rhoNil=1049.470,
+# rhoConst=1000.,
+tempAdvScheme=33,
+saltAdvScheme=33,
+HeatCapacity_Cp=4e+03,
+implicitFreeSurface=.TRUE.,
+implicitViscosity = .TRUE.,
+implicitDiffusion=.TRUE.,
+vectorInvariantMomentum=.TRUE.,
+selectCoriScheme=2,
+selectVortScheme=2,
+selectKEscheme=2,
+useNHMTerms=.TRUE.,
+exactConserv=.TRUE.,
+useSingleCpuIO=.TRUE.,
+readBinaryPrec=32,
+writeBinaryPrec= 32,
+plotLevel=0,
+staggerTimeStep=.TRUE.,
+sBeta=0.000767,
+#ivdc_kappa=100.,
+#usePickupBeforeC54=.TRUE.,
+cosPower=4.,
+#diffK4T=2.E12,
+#diffKrNrT=1.E-4, 14*1.E-5,
+#useCDscheme=.TRUE.,
+hFacMin=0.1,
+addFrictionHeating=.FALSE.,
+&
+
+# Elliptic solver parameters
+&PARM02
+cg2dMaxIters=500,
+cg2dTargetResidual=1.E-12,
+cg2dTargetResWunit=1.E-16,
+cg3dMaxIters= 180,
+#cg3dTargetResidual=1.E-9,
+&
+
+# Time stepping parameters
+&PARM03
+#pickupSuff='0011664000',
+pickupStrictlyMatch=.FALSE.,
+ nIter0=0,
+ nTimeSteps=2592000,
+deltaT=600,
+momDissip_In_AB=.FALSE.,
+#deltaTmom=1200.0,
+#deltaTfreesurf=3600.0,
+#deltaTtracer=86400.0,
+#deltaTClock =86400.0,
+
+#chkptFreq=0.0,
+#pChkptFreq=124416000.0,
+writePickupAtEnd=.TRUE.,
+#taveFreq=1555200000.0,
+#diagFreq=1555200000.0,
+dumpFreq=3110400.0,
+monitorFreq=3110400.0,
+#dumpFreq=3600.0,
+#monitorFreq=3600.0,
+monitorSelect=2,
+
+abEps=0.1,
+#tauCD=321428.,
+#upper surface relaxation: tauThetaClimRelax, thetaClimFile
+#tauThetaClimRelax=43200.0,
+&
+
+# Gridding parameters
+&PARM04
+pCellMix_delR=200,
+pCellMix_diffKr=1,
+pCellMix_select=30,
+pCellMix_viscAr=1,
+usingSphericalPolarGrid=.TRUE.,
+#flat
+delR= 19000.0, 52*500.0, 700.0, 1000.0, 1300.0, 1700.0, 12*2000.0, 2300.0
+ygOrigin=-84.,
+delY=336*0.5,
+delX=40*0.5,
+rSphere=250000.000000,
+deepAtmosphere=.TRUE.,
+&
+
+# Input datasets
+&PARM05
+bathyFile='flat_76km.bin',
+hydrogThetaFile='Tini_restart_.bin',
+checkIniTemp = .FALSE.,
+# maskIniTemp = .FALSE.,
+# thetaClimFile  = 'rbcs_bottom.bin',
+geothermalFile='Q_bottom_0mW.bin',
+#diffKrFile='kappav3d_bnd1interior0.001.bin',
+hydrogSaltFile='Sini_restart_.bin',
+&
