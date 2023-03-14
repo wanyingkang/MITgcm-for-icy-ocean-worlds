@@ -3,6 +3,8 @@ This code modify MITgcm to simulate icy ocean world.
 The MITgcm version this code is developed upon can be downloaded from https://github.com/jm-c/MITgcm/tree/deep_factor_in_Smag3D
 There are later versions, but they may not be compatible with the code modificatio here.
 
+For people who are familiar with MITgcm, you'll only need code_now where modified source codes are stored and input_now where namelist data files are stored. In the input_now folder, there is a gendata.m file. It takes some physical parameters as input and write proper namelist data files and generate necessary input files for you. Please take a close look before using and make changes as needed.
+
 Steps for people who are not familiar with MITgcm:
 1. Download MITgcm source code from https://github.com/jm-c/MITgcm/tree/deep_factor_in_Smag3D
 
@@ -22,11 +24,13 @@ Steps for people who are not familiar with MITgcm:
 Folder structure:
     i) build: it contains the objective files source code files and executable. You are not supposed to directly edit anything in this folder.
     ii) code: it contains the source code files you have edited for the specific case. If you make changes to anything in the code folder, you’ll need to go back to the build folder and rebuild the model. To do so, go to the build folder, load proper modules, type "make" and hit enter.
-    iii) input: it contains all the namelist files which tell the model about the configuration you want, e.g. ocean salinity, bathymetry, domain etc. A matlab file in this folder called gendata.m is used to set up the namelist files (whose names starting w/ “data.xxx”) and produce the input data files needed for the configuration (e.g., bathymetry profile). Better to read gendata.m carefully to know what will be put into the model. Changes will be needed if you want to alter the model configuration.
+    iii) input: it contains all the namelist files which tell the model about the configuration you want, e.g. ocean salinity, bathymetry, domain etc. A matlab file in this folder called gendata.m is used to set up the namelist files (whose names starting w/ “data.xxx”) and produce the input data files needed for the configuration (e.g., bathymetry profile). Please take a close look before using! Changes will be needed if you want to alter the model configuration.
     iv) data_[casename]: this is a link pointing to a folder that stores your data and run the experiment.
     v) jupyter_template.ipynb: it visualize the model output. In order for this to work, you need to download my analysis library (in the analysis folder here). For MIT svante user, you need to go to: https://svante-ood.mit.edu/pun/sys/dashboard/batch_connect/sessions to start a jupyter notebook session.
     vi) newrundir: this script help you create a new experiment which uses the same source code but potentially different namelist setups. ./newrundir [expname] create [reference expname]
 
-6. to run the model, you need to get into the run directory, data_[casename]_[expname], and sbatch run.sub (may vary in other systems, check with IT people). It will run the model until totaliteration is reached.
+6. Run gendata.m by typing in "matlab<gendata.m"
+
+7. to run the model, you need to get into the run directory, data_[casename]_[expname], and sbatch run.sub (may vary in other systems, check with IT people). It will run the model until totaliteration is reached.
 
 Good luck! 
