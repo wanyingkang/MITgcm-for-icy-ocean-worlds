@@ -1,7 +1,7 @@
 # MITgcm-for-icy-ocean-worlds
 This code modify MITgcm to simulate icy ocean world.
-The MITgcm version this code is developed upon can be downloaded from https://github.com/jm-c/MITgcm/tree/deep_factor_in_Smag3D
-There are later versions, but they may not be compatible with the code modificatio here.
+The MITgcm version this code is developed upon can be downloaded from https://github.com/jm-c/MITgcm/tree/deep_factor_in_Smag3D. 
+There are newer versions, but they may not be compatible with the code modificatio here.
 
 For people who are familiar with MITgcm, you'll only need code_now where modified source codes are stored and input_now where namelist data files are stored. In the input_now folder, there is a gendata.m file. It takes some physical parameters as input and write proper namelist data files and generate necessary input files for you. Please take a close look before using and make changes as needed.
 
