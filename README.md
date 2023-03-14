@@ -5,8 +5,8 @@ There are later versions, but they may not be compatible with the code modificat
 
 Steps for people who are not familiar with MITgcm:
 1. Download MITgcm source code from https://github.com/jm-c/MITgcm/tree/deep_factor_in_Smag3D
-2. 
-3. Create a folder called "my_exp" under the MITgcm folder, and copy everything in this folder there.
+
+2. Create a folder called "my_exp" under the MITgcm folder, and copy everything in this folder there.
 
 3. Download gsw package from https://www.teos-10.org/software.htm#1
 
