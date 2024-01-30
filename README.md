@@ -33,10 +33,21 @@ Steps for people who are not familiar with MITgcm:
     
         v) jupyter_template.ipynb: this is a sample code to visualize the model output. In order for this to work, you need to use my analysis library (make it visible to python by setting the PYTHONPATH env variable). Caution: this package assumes that the model output is written in a very specific way as specified in the data.diagnostics. For MIT svante user, you need to go to: https://svante-ood.mit.edu/pun/sys/dashboard/batch_connect/sessions to start a jupyter notebook session.
     
-        vi) newrundir: this script helps you create a new experiment which uses the same source code and thus the same executable (mitgcmuv under the build folder) but different namelist configurations (done in the input folder). To do so, just type ./newrundir [expname] create [reference expname]. 
+        vi) newrundir: this script helps you create a new experiment which uses the same source code and thus the same executable (mitgcmuv under the build folder) but different namelist configurations (done in the input folder). To do so, just type ./newrundir [expname] create [reference expname].
 
-6. Run gendata.m by typing in "matlab<gendata.m"
+6. Now you can create your experiment using newrundir.
 
-7. to run the model, you need to get into the run directory, data_[casename]_[expname], and sbatch run.sub (may vary in other systems, check with IT people). It will run the model until totaliteration is reached.
+./newrundir [expname] create [reference expname]
+This command will create the following files:
+     input_[expname]: stores the namelist files for this specific exp
+     data_[casename]_[expname]: is a symbolic link to the run directory, which is located in your storage disk.
+     [expname].ipynb: Jupyter notebook file that help you visualize this experiment.
+
+You may also do createborrow instead of create. That will copy the latest pickup files from the reference experiment and set the new experiment to restart from there.
+
+7. Modify gendata.m, then run gendata.m by typing in "matlab<gendata.m". This can be done in input_[expname] or in data_[casename]_[expname]
+
+8. to run the model, you need to get into the run directory, data_[casename]_[expname], and type in "sbatch run.sub" to submit job (may vary in other systems, check with IT people). It will run the model until totaliteration is reached.
+
 
 Good luck! 
