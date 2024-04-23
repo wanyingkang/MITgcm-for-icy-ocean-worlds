@@ -24,7 +24,7 @@
    levels(1,1) = 1.,
    fileName(1) = 'surfDiag',
   fileFlags(1) = 'D       ',
-  frequency(1) = -3110400.,
+  frequency(1) = -31104000.,
 # do not specify levels => all levels are selected
   fields(1:12,2) = 'UVEL    ','VVEL    ','WVEL    ','PHIHYD  ',
                    'VVELMASS',
@@ -33,12 +33,12 @@
                    'THETASQ ','UVELSQ  ',
                    'UV_VEL_Z','WU_VEL  ',
    fileName(2) = 'dynDiag',
-  frequency(2) = -3110400.,
+  frequency(2) = -31104000.,
 
   fields(1:2,3)  = 'DRHODR  ','RHOAnoma',
 #                   'GM_PsiY ','GM_Kvy  ','GM_Kvz  ','GM_Kwy  ','GM_Kwz  ',
    fileName(3) = 'oceDiag',
-  frequency(3) = 3110400.,
+  frequency(3) = 31104000.,
 
   fields(1:10,4)  = 'ADVy_TH ','ADVr_TH ',
                    'DFyE_TH ','DFrE_TH ',
@@ -48,17 +48,17 @@
                    'DFrI_SLT ',
 #                  'ADVx_SLT',
    fileName(4) = 'flxDiag',
-  frequency(4) = 3110400.,
+  frequency(4) = 31104000.,
 
 fields(1:5,5) = 'SHIForcS', 'SHIForcT', 'SHIgammT', 'SHIgammS', 'SHIuStar',
 fileName(5) = 'shiDiag',
-frequency(5)=3110400.,
+frequency(5)=31104000.,
 
   fields(1:9,6) = 'Um_Cori ','Um_Advec','Um_AdvRe',
                   'Um_Diss ','Um_ImplD','Um_dPhiX',
                   'USidDrag','Um_Ext  ','Um_AdvZ3',
    fileName(6) = 'momDiag',
-  frequency(6) = 3110400.,
+  frequency(6) = 31104000.,
  &
 
 #--------------------
@@ -82,7 +82,7 @@ frequency(5)=3110400.,
 # an example just to check the agreement with MONITOR output:
  stat_fields(1:11,1)  = 'ETAN    ','UVEL    ','VVEL    ','WVEL    ', 'THETA   ', 'SHIfwFlx', 'SHIgammT', 'SHIgammS', 'SHIuStar', 'SHIForcT', 'SHIForcS'
   stat_fName(1) = 'dynStDiag',
-   stat_freq(1) = -3110400.,
+   stat_freq(1) = -31104000.,
   stat_phase(1) = 0.,
  &
 

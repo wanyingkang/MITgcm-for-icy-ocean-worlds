@@ -160,8 +160,6 @@ C-    wykang: add new namelist variable
      & 'H_ice0   =', ' /* global mean ice thickness (m) */')
        CALL WRITE_0D_RL( Htide0, INDEX_NONE,
      & 'Htide0   =', ' /* global mean ice shell dissipation (W/m2) */')
-       CALL WRITE_0D_RL( Htide0_portion, INDEX_NONE,
-     & 'Htide0_portion   =', ' /* proportion of ice dissipation */')
        CALL WRITE_0D_RL( ptide, INDEX_NONE,
      & 'ptide    =', ' /* power dependence of Htide on H_ice */')
        CALL WRITE_0D_RL( pcond, INDEX_NONE,

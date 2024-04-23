@@ -86,7 +86,6 @@ c wykang: add new namelist variables
      &     ,RealSteppingIceShell
      &     ,usePT
      &     ,addmixbend
-     &     ,Htide0_portion
 
 C---+----1----+----2----+----3----+----4----+----5----+----6----+----7-|--+----|
 
@@ -191,7 +190,6 @@ C wykang
       SHIdtFactor=1.0
       PrescribeFreezing=0
       RealSteppingIceShell=.TRUE.
-      Htide0_portion=-1.0 _d 0 
 
 C Open and read the data.shelfice file
       WRITE(msgBuf,'(A)') ' SHELFICE_READPARMS: opening data.shelfice'

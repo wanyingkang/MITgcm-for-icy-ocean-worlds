@@ -105,8 +105,6 @@ C                               Units are N/m^2 ;   > 0 increase top vVel
 C wykang: add new namelist variables:
 C     Htide0                 :: global mean tidal heat flux (default 0.0289)
 C                               Units are W/m^2 ;
-C     Htide0_portion         :: global mean tidal heat flux portion (default -1.0)
-C                               rescale Htide if positive;
 C     H_ice0                 :: global mean ice thickness (default: 20.8e3)
 C                               Units are m ;
 C     ptide                  :: nondimensional tidal amplification power (default -1.5)
@@ -191,7 +189,6 @@ C     wykang: add new namelist variable
      &     ,HtP2,HtP3,HtP1,HtP4,HtP5,HtP6
      &     ,pcond
      &     ,pcond_ext,ptide_ext
-     &     ,Htide0_portion
 
       _RL SHELFICE_dumpFreq, SHELFICE_taveFreq
       _RL SHELFICEheatTransCoeff
@@ -219,7 +216,6 @@ C     wykang: add new namelist variable
       _RL HtP2,HtP3,HtP1,HtP4,HtP5,HtP6
       _RL pcond
       _RL pcond_ext,ptide_ext
-      _RL Htide0_portion
 
       COMMON /SHELFICE_FIELDS_RL/
      &     shelficeMass, shelficeMassInit,

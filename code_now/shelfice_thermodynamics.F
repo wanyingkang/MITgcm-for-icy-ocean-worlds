@@ -129,18 +129,11 @@ C     drKp1, recip_drLoc
 #endif
 C wykang: def new variables
       _RL rho_bulk, rho_out
-      _RL p_correction(1-OLx:sNx+OLx,1-OLy:sNy+OLy)
-      _RL H_ice1
+c      _RL p_correction(1-OLx:sNx+OLx,1-OLy:sNy+OLy)
+      _RL H_ice(1-OLx:sNx+OLx,1-OLy:sNy+OLy)
       _RL condfac, tidefac
       _RL budg
       _RL flow_n,flow_s,flow_e,flow_w
-      _RL Htide_loc(1:sNx,1:sNy,nSx,nSy)
-      _RL Hcond_loc(1:sNx,1:sNy,nSx,nSy)
-      _RL Htide_tot
-      _RL Hcond_tot
-      _RL tidenorm
-      _RL Htide_tile(nSx,nSy)
-      _RL Hcond_tile(nSx,nSy)
       INTEGER logkappa
 c wykang: end def
 CEOP
@@ -266,53 +259,7 @@ C     where this value is part of the protocol
 #endif /* ALLOW_SHIFWFLX_CONTROL */
 c     wykang: def
       rho_out=1000.
-c      rho_bulk=gravity/((6.67 _d -11) *16.*atan(1.)/3.*rSphere)
-      rho_bulk=1617.8
-c     wykang: calculate Htide and Hcond
-      DO bj = myByLo(myThid), myByHi(myThid)
-      DO bi = myBxLo(myThid), myBxHi(myThid)
-      DO j=1, sNy
-      DO i=1, sNx
-       H_ice1=shelficeMass(i,j,bi,bj)/rhoShelfIce
-       condfac=(H_ice1/H_ice0)**pcond
-       Hcond_loc(I,J,bi,bj)=Hcond(I,J,bi,bj)*condfac
-       tidefac=(H_ice1/H_ice0)**ptide
-       Htide_loc(I,J,bi,bj)=Htide(I,J,bi,bj)*tidefac+Hmixbend(I,J,bi,bj)
-      ENDDO
-      ENDDO
-      ENDDO
-      ENDDO
-      IF (Htide0_portion.gt.0) THEN
-       DO bj = myByLo(myThid), myByHi(myThid)
-       DO bi = myBxLo(myThid), myBxHi(myThid)
-        Htide_tile(bi,bj)=0. _d 0
-        Hcond_tile(bi,bj)=0. _d 0
-       DO j=1, sNy
-       DO i=1, sNx
-        Hcond_tile(bi,bj) = Hcond_tile(bi,bj)
-     &         + Hcond_loc(i,j,bi,bj)*_rA(i,j,bi,bj)*maskInC(i,j,bi,bj)
-        Htide_tile(bi,bj) = Htide_tile(bi,bj)
-     &         + Htide_loc(i,j,bi,bj)*_rA(i,j,bi,bj)*maskInC(i,j,bi,bj)
-       ENDDO
-       ENDDO
-       ENDDO
-       ENDDO
-       CALL GLOBAL_SUM_TILE_RL( Htide_tile,
-     &       Htide_tot, myThid )
-       CALL GLOBAL_SUM_TILE_RL( Hcond_tile,
-     &       Hcond_tot, myThid )
-       tidenorm=abs(Htide0_portion*Hcond_tot/Htide_tot)
-
-       DO bj = myByLo(myThid), myByHi(myThid)
-       DO bi = myBxLo(myThid), myBxHi(myThid)
-       DO j=1, sNy
-       DO i=1, sNx
-        Htide_loc(i,j,bi,bj)=Htide_loc(i,j,bi,bj)*tidenorm
-       ENDDO
-       ENDDO
-       ENDDO
-       ENDDO
-      ENDIF
+      rho_bulk=gravity/((6.67 _d -11) *16.*atan(1.)/3.*rSphere)
 
       DO bj = myByLo(myThid), myByHi(myThid)
        DO bi = myBxLo(myThid), myBxHi(myThid)
@@ -332,12 +279,12 @@ c     wykang: calculate Htide and Hcond
 # endif /* SHI_ALLOW_GAMMAFRICT */
 #endif /* ALLOW_AUTODIFF_TAMC */
 c     wykang: correction due to the variation of g with r
-      DO j=1-OLy, sNy+OLy
-      DO i=1-OLx, sNx+OLx
-       H_ice1=shelficeMass(i,j,bi,bj)/rhoShelfIce
-c       p_correction(i,j)=((1.-rho_out/rho_bulk)/(1.-H_ice1/rSphere)
-c     &             +rho_out/rho_bulk*(1.-H_ice1/rSphere/2.))
-       p_correction(i,j)=1.
+      Do j=1-OLy, sNy+OLy
+      Do i=1-OLx, sNx+OLx
+        H_ice(i,j)=shelficeMass(i,j,bi,bj)/rhoShelfIce
+c        p_correction(i,j)=((1.-rho_out/rho_bulk)/(1.-H_ice(i,j)/rSphere)
+c     &             +rho_out/rho_bulk*(1.-H_ice(i,j)/rSphere/2.))
+        
       ENDDO
       ENDDO
 
@@ -350,7 +297,7 @@ c          pLoc(I,J) = ABS(R_shelfIce(I,J,bi,bj))
 c        pLoc is in the unit of dbar
          pLoc(I,J) = shelficeMass(I,J,bi,bj)*gravity*1. _d -4
 c        wykang: this correction is tiny 
-         pLoc(I,J)=pLoc(I,J)*p_correction(I,J)
+c         pLoc(I,J)=pLoc(I,J)*p_correction(I,J)
 
 c         print*, 'theta=',theta(I,J,K,bi,bj)
           tLoc(I,J) = theta(I,J,K,bi,bj)
@@ -626,6 +573,7 @@ C wykang: calculate heat conduction rate using log formula if
 C SHELFICEkappa < 0
             IF ( SHELFICEkappa .LT. 0. _d 0 ) THEN
              logkappa=1
+             condfac=(H_ice(I,J)/H_ice0)**pcond
             ENDIF
 C wykang: end calculate heat conduction rate using log formula
 
@@ -652,7 +600,7 @@ C     code of typ (pLoc-const)/pLoc
      &           * SHELFICEkappa *  ( 1. _d 0 - dFac )
 c            eps3 = eps3a/pLoc(I,J) --wykang: this is wrong when g~=10
 c           wykang: use ice thickness
-            eps3=eps3a/shelficeMass(i,j,bi,bj)*rhoShelfIce
+            eps3=eps3a/H_ice(I,J)
             eps4 = b*pLoc(I,J) + c0
             eps6 = eps4 - tLoc(I,J)
             eps7 = eps4 - SHELFICEthetaSurface
@@ -673,10 +621,11 @@ c     &           + eps3a*( b
 c     &                   + ( c0 - SHELFICEthetaSurface )/pLoc(I,J) )
 c     &           - eps2
 c     &           + eps8*( a0*sLoc(I,J) - eps7 )
+            tidefac=(H_ice(I,J)/H_ice0)**ptide
             bqe = eps1*eps6 - eps2
      &           + eps3*eps7*(1-logkappa) 
-     &           - Hcond_loc(I,J,bi,bj)*logkappa
-     &           - Htide_loc(I,J,bi,bj)
+     &           - Hcond(I,J,bi,bj)*condfac*logkappa
+     &           - (Htide(I,J,bi,bj)*tidefac+Hmixbend(I,J,bi,bj)) 
 c     &           + eps8*( a0*sLoc(I,J) - eps7 )
 c     &           + cFac*eps5*(-a0*sLoc(I,J)+eps4-rFac*tLoc(I,J))
 
@@ -745,19 +694,13 @@ cph     &           * ( saltFreeze - sLoc(I,J) ) / saltFreeze
 C wykang: check budget
              budg = eps1*(-eps6-a0*saltFreeze)
      &        - eps3*eps7*(1-logkappa) 
-     &        + Hcond_loc(I,J,bi,bj)*logkappa
-     &        + Htide_loc(I,J,bi,bj)
+     &        + Hcond(I,J,bi,bj)*condfac*logkappa
+     &        + (Htide(I,J,bi,bj)*tidefac+Hmixbend(I,J,bi,bj))
      &        + SHELFICElatentHeat * freshWaterFlux
              IF ( mod(MyIter,500000) .EQ. 1 ) THEN
               print *, '!! MyIter:',MyIter, 
-     &         ', lat=',yC(I,J,bi,bj),
-     &         ', Hice=',shelficeMass(i,j,bi,bj)/rhoShelfIce,
-     &         ', thetaFreeze=',thetaFreeze,
-     &         ', Hcond=',Hcond_loc(I,J,bi,bj), 
-     &         ', Hcond0=',Hcond(I,J,bi,bj), 
-     &         ', Htide=',Htide_loc(I,J,bi,bj),
-     &         ', Htide0=',Htide(I,J,bi,bj),
-     &         ', Hmix=',Hmixbend(I,J,bi,bj),
+     &         'thetaFreeze=',thetaFreeze,
+     &         ', Hcond=',Hcond(I,J,bi,bj)*condfac, 
      &         ', saltFreeze=',saltFreeze, ', budg=',budg
              ENDIF
 
@@ -766,10 +709,12 @@ C--   MITgcm sign conventions: downward (negative) fresh water flux
 C--   implies melting and due to upward (positive) heat flux
 c     This is a diagnostic
             shelfIceHeatFlux(I,J,bi,bj) =
-     &           HeatCapacity_Cp*( shiTransCoeffT(i,j,bi,bj)
-     &           *rUnit2mass - cFac * freshWaterFlux)
-     &           *( thetaFreeze - tLoc(I,J) )
-     &           -cFac*rFac*HeatCapacity_Cp*freshWaterFlux*tLoc(I,J)
+     &           (1-logkappa)*eps3
+     &           * ( thetaFreeze - SHELFICEthetaSurface )
+     &           - logkappa * Hcond(I,J,bi,bj)*condfac
+     &           - (Htide(I,J,bi,bj)*tidefac+Hmixbend(I,J,bi,bj))
+     &           - freshWaterFlux*( SHELFICElatentHeat
+     &           - HeatCapacity_Cp*( thetaFreeze - tLoc(I,J) )*cFac )
 
 C--   compute surface tendencies
 C--   DNG: correction to use cell value for flux rather than BL values
@@ -925,26 +870,12 @@ c         flow divergence (kg/s/m2)
          ENDDO
         ENDDO
        ENDDO
-       ENDIF
-#ifdef ALLOW_DIAGNOSTICS
-       IF (useDiagnostics) THEN
-        CALL DIAGNOSTICS_FILL( shelfIceMassDynTendency, 'SHI_flow',
-     I                         0, 1, 0, 1, 1, myThid )
-       ENDIF
-#endif /* ALLOW_DIAGNOSTICS */
 
        IF ( RealSteppingIceShell ) THEN
         CALL SHELFICE_STEP_ICEMASS( myTime, myIter, myThid )
        ENDIF
+       ENDIF
       ENDIF
-
-
-#ifdef ALLOW_DIAGNOSTICS
-      IF (useDiagnostics) THEN
-        CALL DIAGNOSTICS_FILL( shelficeMass, 'SHI_mass',
-     I                         0, 1, 0, 1, 1, myThid )
-      ENDIF
-#endif /* ALLOW_DIAGNOSTICS */
 
 
 C--  Calculate new loading anomaly (in case the ice-shelf mass was updated)
@@ -956,7 +887,8 @@ c     IF ( SHELFICEloadAnomalyFile .EQ. ' ' ) THEN
           DO i = 1-OLx, sNx+OLx
 c wykang: gravity variation with r
            shelficeLoadAnomaly(i,j,bi,bj) = gravity
-     &      *(shelficeMass(i,j,bi,bj)*p_correction(i,j) 
+     &      *(shelficeMass(i,j,bi,bj)
+c     &      *p_correction(i,j) 
      &      + rhoConst*Ro_surf(i,j,bi,bj))
 c     &      *( shelficeMass(i,j,bi,bj) + rhoConst*Ro_surf(i,j,bi,bj) )
           ENDDO

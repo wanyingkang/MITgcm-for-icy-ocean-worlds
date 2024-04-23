@@ -48,8 +48,8 @@ CEOP
      &           OLy =   4,
      &           nSx =   1,
      &           nSy =   1,
-     &           nPx =   2,
-     &           nPy =  24,
+     &           nPx =   4,
+     &           nPy =  48,
      &           Nx  = sNx*nSx*nPx,
      &           Ny  = sNy*nSy*nPy,
      &           Nr  =  70)

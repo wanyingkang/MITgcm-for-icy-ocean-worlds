@@ -1,6 +1,6 @@
 %% load packages
 MITROOT='./'; % MITROOT should point to the directory where MITgcm is installed XX.
-addpath([MITROOT,'/MITgcm/utils/matlab/']) 
+addpath([MITROOT,'/MITgcm/utils/matlab/'])
 addpath(genpath([MITROOT,'/MITgcm/my_exp/gsw/'])); % gsw needs to be put under this path XX
 
 %% initial condition
@@ -27,11 +27,11 @@ iceshelf_saltcoef=1e-5; % m/s, salt exchange rate between ice and ocean
 bottom_dragcoef=1e-4; % m/s, momentum exchange rate between core and ocean
 iceshelf_dragcoef=1e-4; % m/s, momentum exchange rate between ice and ocean
 
-%% domain 
+%% domain
 Htot=76e3;
-nx=40 ; ny=336 ;
+nx=80 ; ny=672 ;
 nr=70;
-dx=0.5 ; dy=0.5 ; yyM=84 ; % yyM set latitudinal range yyM degS to yyM degN
+dx=0.25 ; dy=0.25 ; yyM=84 ; % yyM set latitudinal range yyM degS to yyM degN
 
 %% ocean salinity, equation of state
 Sref=60;
@@ -39,7 +39,7 @@ eos='LINEAR';
 usePT=1; % consistent with linear EOS, density doesn't vary with pressure, also need to turn off the T->PT conversion in shelfice_thermodynamics.F
 
 %% ice shell geometry
-Hice0=24e3; Hice_P1=0e3; Hice_P2=-3e3; Hice_P3=0; % 0.025H0, 0.3H0
+Hice0=20e3; Hice_P1=0e3; Hice_P2=-3e3; Hice_P3=0; % 0.025H0, 0.3H0
 realtopo=0; % 0: dont use realtopo, 1: use zonal mean, 2: use the whole 2D field
 realtopopath='/home/wanying/Hemingway_Mittal_2019_Enceladus_nominal_shell_thickness_Fig11d/Enceladus_nominal_shell_thickness_Fig11d.tab';
 Mice_randic=0*10.0; % random ice shelf geometry amplitude (m)
@@ -48,7 +48,7 @@ Mice_randic=0*10.0; % random ice shelf geometry amplitude (m)
 Htide0_portion=1; % portion of heat production in the ice shell, 1: 100% shell heating, 0: 100% core heating
 twodtide=0; % account for zonal ice thickness variation
 qbotvary=1; % 1: use poleward amplified bottom heating profile given by Beuthe 2019, 0: use uniform bottom heating
-qbot0=-1; % when set to positive value, this bottom heating rate will be used.
+qbot0=-1; % when set to positive value, bottom heating rate will be set to qbot0; when set to negative value, bottom heating is set to make global heat budget match.
 Htidemode=[0.250, 0.0825, -0.0834, -0.0546, -0.0562]; % ice dissipation profile (membrane mode), the 5 elements give the Y20, Y40, Y22, Y42, Y44 amp relative to Y00, calculated using Beuthe 2019 formula with Enceladus parameters
 Hmixbendmode=[0.124,0.196,-0.0199,-0.0656,0.0132,0.0136]; % same as Htidemode except this is for mix+bend mode
 addmixbend=1; % whether to include mix+bend mode
@@ -63,20 +63,20 @@ tiltheat=0.0; % hemispherically asymmetric heating
 %% ice freezing/melting mode
 PrescribeFreezing=1; % 1: prescribe freezing/melting rate using thin shell ice flow model (see Kang and Flierl 2020), 0: allow ice to respond to ocean heat transport
 EvolveIce=0; % 0: ice geometry doesn't evolve, 1: ice geometry evolve based on freezing/melting rate and ice flow amplified by SHIdtFactor
-SHIdtFactor=20; % boost the total ice evolution tendency (including tendency induced by ice flow) by this factor to accelerate convergence.
+SHIdtFactor=1; % boost the total ice evolution tendency (including tendency induced by ice flow) by this factor to accelerate convergence.
 
 %% physical constants
-rhoice=917.; % ice density
-kappa0=651; % ice heat conductivity constant
-a0=250e3; % radius
+rhoice=917.; % kg/m3, ice density
+kappa0=651; % W/m, ice heat conductivity constant
+a0=250e3; % m, radius
 G=6.67e-11; % gravitational const
-rhocore=2500;
-rhoout=1000;
+rhocore=2500; % kg/m3, core density
+rhoout=1000; % kg/m3, outer layer density
 M=4*pi/3*((a0-Htot)^3*rhocore+(a0^3-(a0-Htot)^3)*rhoout);
-g0=G*M/a0^2; % gravity
-eta_melt=3e14; % viscosity at melting
+g0=G*M/a0^2; % m/s2, gravity
+eta_melt=3e14; % Pa s, viscosity at melting
 eta_max_Q=Inf;
-Ea=59.4e3; % activation energy J/mol
+Ea=59.4e3; % J/mol, activation energy
 Rg=8.31; % ideal gas constant
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -92,7 +92,7 @@ Rg=8.31; % ideal gas constant
 system('cp -f data data_back');
 system('cp -f data.shelfice data.shelfice_back');
 
-if (Hice_P1==0 && Hice_P2==0 && Hice_P3==0 && realtopo==0) 
+if (Hice_P1==0 && Hice_P2==0 && Hice_P3==0 && realtopo==0)
     appendix='flat'; % choose a name for the topography, IC profiles
 else
     appendix='';
@@ -121,7 +121,7 @@ prec='real*4';
 %% -- equation of state
 P_inter0=rhoice*g0*Hice0;
 Tfreeze0=gsw_t_freezing(Sref,P_inter0/1e4);
-rhoNil=gsw_rho(Sref,Tfreeze0,P_inter0/1e4); 
+rhoNil=gsw_rho(Sref,Tfreeze0,P_inter0/1e4);
 sBeta=gsw_beta(Sref,Tfreeze0,P_inter0/1e4); % P in unit of dbar
 tAlpha=gsw_alpha(Sref,Tfreeze0,P_inter0/1e4);
 pKappa=gsw_kappa_CT_exact(Sref,0,P_inter0/1e4);
@@ -244,7 +244,7 @@ P_inter=Miceshelf.*(g0).*p_correction;
 Tfreeze=fa0*(Sref)+fc0+fb*P_inter/1e4;
 
 if usePT
-    Thfreeze=fPT_T(Tfreeze,P_inter/1e4,Sref); 
+    Thfreeze=fPT_T(Tfreeze,P_inter/1e4,Sref);
     % if turn on this, one also need to turn on the T->PT conversion in shelfice_thermodynamics.F
     % 40psu: approximately equivalent to minus 5mK; 4psu: to minus <3.5mK
     func_replace_string('data.shelfice','usePT','usePT=.TRUE.,')
@@ -318,7 +318,7 @@ one=ones(nx,ny);
 Y00=sqrt(1/4/pi).*one;
 Y20=sqrt(5/4/pi)*(1.5*slat.^2-0.5).*one;
 Y40=sqrt(9/4/pi)*(35/8*slat.^4-30/8*slat.^2+3/8).*one;
-if nx>1 && twodtide 
+if nx>1 && twodtide
     c2lon=cosd(2.*xc);
     c4lon=cosd(4.*xc);
     Y22=sqrt(5/4/pi/24).*(3-3*slat.^2.).*(2*c2lon);
@@ -356,7 +356,7 @@ if EvolveIce
     func_replace_string('data.shelfice','Htide0_portion',['Htide0_portion=',sprintf('%f',Htide0_portion),','])
     fprintf('Htide0_portion=%f,',Htide0_portion)
 else
-    func_replace_string('data.shelfice','Htide0_portion',['Htide0_portion=-1,']) % if ice is not evolving, there is no need to do online calculation of ice dissipation 
+    func_replace_string('data.shelfice','Htide0_portion',['Htide0_portion=-1,']) % if ice is not evolving, there is no need to do online calculation of ice dissipation
     fprintf('Htide0_portion=%f,',Htide0_portion)
 end
 func_replace_string('data.shelfice','ptide=',['ptide=',sprintf('%f',ptide),','])
@@ -445,7 +445,7 @@ saveas(gcf,'heat_profile.png')
  fprintf('SHELFICEDragLinear=%.3g,',iceshelf_dragcoef)
  SHELFICElatentHeat=334000;
  func_replace_string('data.shelfice','SHELFICElatentHeat',['SHELFICElatentHeat=',sprintf('%f',SHELFICElatentHeat),','])
- 
+
 %% - meridional variation of kappav
 if meridionalkappav==1
     kappav1=kappav_pole+(kappav_eq-kappav_pole).*exp(-abs(yc)/kappav_width);
@@ -470,7 +470,7 @@ end
  % freezing theta should be lower than the in-situ Tfreeze
  % but the top layer temperature should also be warmer than freezing theta to transport heat into the ice
 if restartTS>=0
-if restartTS==0 % prescribe analytical temp, salt IC profiles     
+if restartTS==0 % prescribe analytical temp, salt IC profiles
      %  --- temperature
      Tini1=repmat(reshape(Thfreeze,[nxy,1]),[1,nr]);
      Hunder1=reshape(Hunder,[nxy,1]);
@@ -502,7 +502,7 @@ if restartTS==0 % prescribe analytical temp, salt IC profiles
      Tini=Tini+delTemp.*ones(nxy,nr).*relh;
      dTemp=round(delTemp0*1000); % im mili-Kelvin
      sfx=sprintf('%i%s',dTemp,'mK.bin');
-     
+
      dTnoise=delTemp0*0;
      dTn=rand([nx,ny]);
      dTn(:,ny/2+1:ny)=dTn(:,ny/2:-1:1);
@@ -591,7 +591,7 @@ elseif restartTS==4 % use netcdf pickup files from other experiment to initializ
         system(['rename 0000000001 ',sprintf('%010d',0),' ./initial_condition/*.nc'])
         expandpickups(restartTSpath,restartTSiter,'./initial_condition/',0)
         system('cp -f initial_condition/pickup*.nc .')
-    end 
+    end
     func_replace_string('data','pickupSuff','pickupSuff=''0000000000'',')
 
 elseif restartTS==5 % use netcdf pickup files from other experiment to restart the model
@@ -602,9 +602,9 @@ elseif restartTS==5 % use netcdf pickup files from other experiment to restart t
         system(['rename 0000000000 ',sprintf('%010d',restartTSiter),' ./restart_condition/*.nc'])
         expandpickups(restartTSpath,restartTSiter,'./restart_condition/',restartTSiter)
         system('cp -f restart_condition/pickup*.nc .')
-    end 
+    end
     func_replace_string('run.sub','export currentiter',['export currentiter=',sprintf('%d',restartTSiter)])
-    
+
 elseif restartTS==6 % use the long-term tendency to adjust current T/S state, so that the experiment converges faster.
     disp('start interpolate nc file')
     restartTSiterout=restartTSiter-1;
@@ -613,7 +613,7 @@ elseif restartTS==6 % use the long-term tendency to adjust current T/S state, so
         system('mkdir restart_condition')
         system(['cp ',gridpath,'*.nc ./restart_condition/'])
         system(['rename ',sprintf('%010d',restartTSiter),' ',sprintf('%010d',restartTSiterout),' ./restart_condition/*.nc'])
-        T_0=mean(mean(rdmds(['run',sprintf('%d',diffiter0),'/T'],NaN),4),1); 
+        T_0=mean(mean(rdmds(['run',sprintf('%d',diffiter0),'/T'],NaN),4),1);
         S_0=mean(mean(rdmds(['run',sprintf('%d',diffiter0),'/S'],NaN),4),1);
         T_1=mean(mean(rdmds(['run',sprintf('%d',diffiter1),'/T'],NaN),4),1);
         S_1=mean(mean(rdmds(['run',sprintf('%d',diffiter1),'/S'],NaN),4),1);
@@ -622,7 +622,7 @@ elseif restartTS==6 % use the long-term tendency to adjust current T/S state, so
         dSIC=repmat(reshape((S_1-S_0),[1,ny,nr]),[nx,1,1]);
         expandpickups(restartTSpath,restartTSiter,'./restart_condition/',restartTSiterout,1,dTIC,dSIC)
         system('cp -f restart_condition/pickup*.nc .')
-    end 
+    end
 end % restartTS>0
 
 if restartTS<4
@@ -646,7 +646,7 @@ if restartTS<4
      fprintf(['\nwrite file: ',fSname]);
     func_replace_string('data','hydrogSaltFile',['hydrogSaltFile=''',fSname,''','])
     fprintf(['hydrogSaltFile=''',fSname,''','])
-    
+
 end
 end % restartTS>=0
 

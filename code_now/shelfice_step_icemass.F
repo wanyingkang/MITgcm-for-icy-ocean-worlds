@@ -30,7 +30,6 @@ C !USES: ===============================================================
 #ifdef ALLOW_STREAMICE
 # include "STREAMICE.h"
 #endif
-#include "SET_GRID.h"
 
 C     !INPUT/OUTPUT PARAMETERS:
 C     myTime      :: current time in simulation
@@ -45,10 +44,6 @@ CEOP
 C !LOCAL VARIABLES : ====================================================
 C     i,j, bi,bj  :: loop indices
       INTEGER bi,bj,i,j
-      _RL Mice_tend(1-OLx:sNx+OLx,1-OLy:sNy+OLy,nSx,nSy)
-      _RL Mice_tendtile(nSx,nSy)
-      _RL rAtile(nSx,nSy)
-      _RL Mice_tendtot, rAtot
 
       IF ( SHELFICEMassStepping ) THEN
 
@@ -74,83 +69,33 @@ C     i,j, bi,bj  :: loop indices
 
         DO bj = myByLo(myThid), myByHi(myThid)
          DO bi = myBxLo(myThid), myBxHi(myThid)
-
           DO j=1-OLy,sNy+OLy
            DO i=1-OLx,sNx+OLx
 
             IF ( .NOT.SHELFICEDynMassOnly ) THEN
-             Mice_tend(i,j,bi,bj) = 
-     &        shelfIceFreshWaterFlux(i,j,bi,bj)*deltaT*SHIdtFactor
+             shelficeMass(i,j,bi,bj) = shelficeMass(i,j,bi,bj)
+     &        + shelfIceFreshWaterFlux(i,j,bi,bj)*deltaT*SHIdtFactor
             ENDIF
 
-             Mice_tend(i,j,bi,bj) = Mice_tend(i,j,bi,bj)
+            shelficeMass(i,j,bi,bj) = shelficeMass(i,j,bi,bj)
      &        + shelfIceMassDynTendency(i,j,bi,bj)*deltaT*SHIdtFactor
 
-             Mice_tend(i,j,bi,bj) = MAX(Mice_tend(i,j,bi,bj),
-     &            3.0 _d 3 * rhoShelfIce - shelficeMass(i,j,bi,bj))
-
-           ENDDO
-          ENDDO
-
-          Mice_tendtile(bi,bj)=0. _d 0
-          rAtile(bi,bj)=0. _d 0
-          DO j=1,sNy
-           DO i=1,sNx
-            IF ( kTopC(i,j,bi,bj).NE.0 ) THEN
-              Mice_tendtile(bi,bj) = Mice_tendtile(bi,bj)
-     &         + Mice_tend(i,j,bi,bj)*_rA(i,j,bi,bj)*maskInC(i,j,bi,bj)
-              rAtile(bi,bj) = rAtile(bi,bj)
-     &         + _rA(i,j,bi,bj)*maskInC(i,j,bi,bj)
-            ENDIF
-           ENDDO
-          ENDDO
-
-         ENDDO
-        ENDDO
-
-        CALL GLOBAL_SUM_TILE_RL( Mice_tendtile,
-     &       Mice_tendtot, myThid )
-        CALL GLOBAL_SUM_TILE_RL( rAtile,
-     &       rAtot, myThid )
-        IF ( rAtot .GT. 0. _d 0 ) THEN
-          Mice_tendtot = Mice_tendtot/rAtot
-        ELSE
-          Mice_tendtot = 0. _d 0
-        ENDIF
-
-        DO bj = myByLo(myThid), myByHi(myThid)
-         DO bi = myBxLo(myThid), myBxHi(myThid)
-          DO j=1-OLy,sNy+OLy
-           DO i=1-OLx,sNx+OLx 
-            shelficeMass(i,j,bi,bj) = shelficeMass(i,j,bi,bj)
-     &            + Mice_tend(i,j,bi,bj) - Mice_tendtot
            ENDDO
           ENDDO
          ENDDO
         ENDDO
-
-        DO bj = myByLo(myThid), myByHi(myThid)
-         DO bi = myBxLo(myThid), myBxHi(myThid)
-          DO j=1-OLy,sNy+OLy
-           DO i=1-OLx,sNx+OLx 
-              IF (usingSphericalPolarGrid .AND.
-     &          (yG(i,j+1,bi,bj) .GE. -ygOrigin-delY(Ny)/2.0)) THEN
-                shelficeMass(i,j,bi,bj) = shelficeMass(i,j-1,bi,bj) 
-              ENDIF
-              IF (usingSphericalPolarGrid .AND. 
-     &          (yG(i,j,bi,bj) .LE. ygOrigin+delY(1)/2.0)) THEN
-                shelficeMass(i,j,bi,bj) = shelficeMass(i,j+1,bi,bj) 
-              ENDIF
-           ENDDO
-          ENDDO
-         ENDDO
-        ENDDO
-        
        ENDIF
 
        _EXCH_XY_RL( shelficeMass, myThid )
 
       ENDIF
+
+#ifdef ALLOW_DIAGNOSTICS
+      IF (useDiagnostics) THEN
+        CALL DIAGNOSTICS_FILL( shelficeMass, 'SHI_mass',
+     I                         0, 1, 0, 1, 1, myThid )
+      ENDIF
+#endif /* ALLOW_DIAGNOSTICS */
 #endif /* ALLOW_SHELFICE */
 
       RETURN
@@ -167,8 +112,6 @@ C !INTERFACE: ==========================================================
 
 C !DESCRIPTION:
 C compute the net mass flux implied by S/R SHELFICE_STEP_MASS
-C used if obcs is on. need to adjust flow in and out to avoid normal
-C flow into the ice 
 
 C !USES: ===============================================================
       IMPLICIT NONE

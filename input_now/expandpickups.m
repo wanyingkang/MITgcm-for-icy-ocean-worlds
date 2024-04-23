@@ -1,6 +1,6 @@
 %interpickups('../data_enceladus_southpole_D2dz300dx100_c90s10ptide2_30psu_eject/',20160000,'./interp2d/',1)
 
-function expandpickups(dirin,iterin,dirout,iterout,varargin)
+function expandpickups(dirin,iterin,dirout,iterout,rpt,dTIC,dSIC,varargin)
 addpath('~/MITgcm/utils/matlab/')
 % function expandpickups(dirin,iterin,dirout,iterout,snap)
 %
@@ -24,7 +24,7 @@ addpath('~/MITgcm/utils/matlab/')
 %
 % May be fishy near boundaries if grid is not uniform...
 
-if nargin==4
+if nargin==7
   snap=1
 else
   snap=varargin{1}
@@ -293,7 +293,8 @@ disp(['Calculating HFacC...'])
 clear HFacouthere
 
 %%%%%%%%%%%%% 2D centered
-vars={'Eta','EtaH','dEtaHdt'};
+%vars={'Eta','EtaH','dEtaHdt'};
+vars={};
 
 for iv=1:length(vars)
   var=vars(iv);
@@ -316,7 +317,7 @@ for iv=1:length(vars)
     end
   end
 % #2 expand x and add small noises
-  Fieldout=inpaint_nans(repmat(Fieldin,[2,1,1]),0);
+  Fieldout=inpaint_nans(repmat(Fieldin,[rpt,1,1]),0);
   Amp=0;
   if Amp~=0
       Fieldout=Fieldout+rand(size(Fieldout)).*Amp;
@@ -334,7 +335,8 @@ end
 %S,gSnm1,Temp,gTnm1,phi_nh are on Xc,Rc
 
 %%%%%%%%%%%%%% centered 3D
-vars={'S','gSnm1','Temp','gTnm1','phi_nh','gWnm1'};
+%vars={'S','gSnm1','Temp','gTnm1','phi_nh','gWnm1'};
+vars={'Temp'};
 for iv=1:length(vars)
  var=vars(iv);
  Fieldoutk=zeros([size(xcout) length(Zcomp)]);
@@ -358,7 +360,7 @@ for iv=1:length(vars)
     end
   end
 % #2 expand x and add small noises
-  Fieldout=inpaint_nans(repmat(Fieldin,[2,ones(1,2-1)]),0);
+  Fieldout=inpaint_nans(repmat(Fieldin,[rpt,ones(1,2-1)]),0);
   if k==length(Zcomp) && strcmp(char(var),'Temp')
       Amp=1e-7;
       Fieldout=Fieldout+rand(size(Fieldout)).*Amp;
@@ -366,7 +368,13 @@ for iv=1:length(vars)
   % return;
   disp([char(var),':',num2str(k),' within topography'])
   Fieldoutk(:,:,k)=Fieldout;
-end
+ end
+ if strcmp(char(var),'Temp')
+     Fieldoutk=Fieldoutk+dTIC
+ end
+ if strcmp(char(var),'S')
+     Fieldoutk=Fieldoutk+dSIC
+ end
 
 for j=1:length(pickout)
   fout=[dirout '/' pickout(j).name];
@@ -403,7 +411,8 @@ disp(['Calculating HFacW...'])
 clear HFacouthere
 
 % variables
-vars={'U','gUnm1'};
+%vars={'U','gUnm1'};
+vars={};
 for iv=1:length(vars)
 var=vars(iv);
  Fieldoutk=zeros([size(xcout) length(Zcomp)]);
@@ -426,7 +435,12 @@ var=vars(iv);
     end
   end
 % #2 expand x and add small noises
-Fieldout=inpaint_nans([Fieldin(1:end-1,:);Fieldin],0);
+if rpt>1
+Fieldout=inpaint_nans([repmat(Fieldin(1:end-1,:),[rpt-1,1]);Fieldin],0);
+else
+Fieldout=inpaint_nans(Fieldin,0);
+end
+
   Amp=0;
   if Amp~=0
       Fieldout=Fieldout+rand(size(Fieldout)).*Amp;
@@ -474,7 +488,8 @@ disp(['Calculating HFacS...'])
 clear HFacouthere
 
 % variables
-vars={'V','gVnm1'};
+%vars={'V','gVnm1'};
+vars={};
 for iv=1:length(vars)
  var=vars(iv);
  Fieldoutk=zeros([size(xcout) length(Zcomp)]);
@@ -497,7 +512,7 @@ for iv=1:length(vars)
     end
   end
 % #2 expand x and add small noises
-  Fieldout=inpaint_nans(repmat(Fieldin,[2,ones(1,2-1)]),0);
+  Fieldout=inpaint_nans(repmat(Fieldin,[rpt,ones(1,2-1)]),0);
   Amp=0;
   if Amp~=0
       Fieldout=Fieldout+rand(size(Fieldout)).*Amp;
@@ -571,7 +586,7 @@ end
 %#%#    end
 %#%#  end
 %#%#% #2 expand x and add small noises
-%#%#  Fieldout=inpaint_nans(repmat(Fieldin,[2,ones(1,2-1)]),0);
+%#%#  Fieldout=inpaint_nans(repmat(Fieldin,[rpt,ones(1,2-1)]),0);
 %#%#  % return;
 %#%#  disp([char(var),':',num2str(k),' within topography'])
 %#%#  Fieldoutk(:,:,k,it)=Fieldout;

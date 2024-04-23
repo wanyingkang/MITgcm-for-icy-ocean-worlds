@@ -93,10 +93,9 @@ C wykang: add spherical harmonics
             P1(i,j,bi,bj)=slat
             P2(i,j,bi,bj)=sqrt(4.*PI/5.)*Y20(i,j,bi,bj)
             P3(i,j,bi,bj)=2.5*slat**3.-1.5*slat
-            P4(i,j,bi,bj)=(35.*slat**4.-30.*slat**2.+3.)/8.0
-            P5(i,j,bi,bj)=(63.*slat**5.-70.*slat**3.+15.*slat)/8.0
-            P6(i,j,bi,bj)=(231*slat**6.-315.*slat**4.+105.*slat**2.-5.)
-     &                      /16.0
+            P4(i,j,bi,bj)=(35*slat**4.-30*slat**2.+3)/8.0
+            P5(i,j,bi,bj)=(63*slat**5-70*slat**3.+15*slat)/8.0
+            P6(i,j,bi,bj)=(231*slat**6.-315*slat**4.+105*slat**2.-5)/16.0
             IF ( Nx .NE. 1 .AND. tide2d ) then
                 Y22(i,j,bi,bj)=sqrt(5./4./PI/24.)*
      &              (3.-3.*slat**2.)*(2.*c2lon)
@@ -125,8 +124,8 @@ c  moved to namelist
 c      Htide0=0.0289
 c       : relative mode amplitudes, Y20, Y40, Y22, Y42, Y44 respectively
       cobl=cos(obliquity* deg2rad)
-      p2obl= (3.*cobl**2. - 1.)/2.
-      p4obl= (35.*cobl**4.-30.*cobl**2. + 3.)/8.
+      p2obl= (3.*cobl**2 - 1)/2.
+      p4obl= (35.*cobl**4.-30.*cobl**2 + 3)/8.
       p6obl= (231.*cobl**6.-315.*cobl**4.+105.*cobl**2.-5.)/16.
       HtideModes=(/0.250, 0.0825, -0.0834, -0.0546, -0.0562/)
       IF (addmixbend) THEN
@@ -180,7 +179,6 @@ c       : relative mode amplitudes, Y20, Y40, Y22, Y42, Y44 respectively
            
            
         thetaSurface_K=SHELFICEthetaSurface+273.15
-
         DO bj = myByLo(myThid), myByHi(myThid)
          DO bi = myBxLo(myThid), myBxHi(myThid)
           DO j = 1-OLy, sNy+OLy
@@ -194,9 +192,9 @@ c       : relative mode amplitudes, Y20, Y40, Y22, Y42, Y44 respectively
                      Ts=thetaSurface_K*(cos(lat))**0.25
                  endif
              ELSEIF (meridionalTs .eq. 3) THEN
-                 Ts=thetaSurface_K*(1.0-(5.0/8.0)*p2obl*P2(i,j,bi,bj)
-     &              -(9.0/64.0)*p4obl*P4(i,j,bi,bj)
-     &              -(65.0/1024.0)*p6obl*P6(i,j,bi,bj))**0.25
+                 Ts=thetaSurface_K*(1.0-(5./8.)*p2obl*P2(i,j,bi,bj)
+     &              -(9./64.)*p4obl*P4(i,j,bi,bj)
+     &              -(65./1024.)*p6obl*P6(i,j,bi,bj))**0.25
              ELSE
                  Ts=thetaSurface_K
              ENDIF
@@ -380,11 +378,10 @@ c     wykang: def
           DO i = 1-OLx, sNx+OLx
 c          wykang: gravity variation with r
            H_ice=shelficeMassInit(I,J,bi,bj)/rhoShelfIce
-c           p_correction=((1.-rho_out/rho_bulk)/(1.-H_ice/rSphere)
-c     &              +rho_out/rho_bulk*(1.-H_ice/rSphere/2.))
-           p_correction=1.
+           p_correction=((1.-rho_out/rho_bulk)/(1.-H_ice/rSphere)
+     &              +rho_out/rho_bulk*(1.-H_ice/rSphere/2.))
            shelficeLoadAnomaly(i,j,bi,bj) = gravity
-     &      *(shelficeMass(i,j,bi,bj)*p_correction 
+     &      *(shelficeMassInit(i,j,bi,bj)*p_correction 
      &      + rhoConst*Ro_surf(i,j,bi,bj))
 c     &      *(shelficeMassInit(i,j,bi,bj)+rhoConst*Ro_surf(i,j,bi,bj))
           ENDDO
@@ -477,13 +474,6 @@ c     ENDIF
        diagName  = 'SHI_mass'
        diagTitle = 'dynamic ice shelf mass for surface load anomaly'
        diagUnits = 'kg/m^2          '
-       diagCode  = 'SM      L1      '
-       CALL DIAGNOSTICS_ADDTOLIST( diagNum,
-     I      diagName, diagCode, diagUnits, diagTitle, 0, myThid )
-
-       diagName  = 'SHI_flow'
-       diagTitle = 'dynamic ice mass flow induced tendency'
-       diagUnits = 'kg/m^2/s        '
        diagCode  = 'SM      L1      '
        CALL DIAGNOSTICS_ADDTOLIST( diagNum,
      I      diagName, diagCode, diagUnits, diagTitle, 0, myThid )
